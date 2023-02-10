@@ -543,12 +543,12 @@ def parse_cell_dict(cell_dict: dict) -> Optional[PhonopyAtoms]:
 # Pure Appl. Chem., Vol. 83, No. 2, pp. 359-396, 2011. is available
 # but the following list is from 2006.
 
-# Pure Appl. Chem., Vol. 78, No. 11, pp. 2051-2066, 2006.
-# The masses of following elements are obtained from wikipedia:
+# The masses of following elements are obtained from NIST:
+# Tc: 98
+# Pm: 145
 # Ac: 227
 # Np: 237
-# Pm: 145
-# Tc: 98
+# Pu: 244
 atom_data = [
     [0, "X", "X", None],  # 0
     [1, "H", "Hydrogen", 1.00794],  # 1
@@ -593,7 +593,7 @@ atom_data = [
     [40, "Zr", "Zirconium", 91.224],  # 40
     [41, "Nb", "Niobium", 92.90638],  # 41
     [42, "Mo", "Molybdenum", 95.96],  # 42
-    [43, "Tc", "Technetium", 98],  # 43 (mass is from wikipedia)
+    [43, "Tc", "Technetium", 97.90721],  # 43 (mass is from NIST)
     [44, "Ru", "Ruthenium", 101.07],  # 44
     [45, "Rh", "Rhodium", 102.90550],  # 45
     [46, "Pd", "Palladium", 106.42],  # 46
@@ -611,7 +611,7 @@ atom_data = [
     [58, "Ce", "Cerium", 140.116],  # 58
     [59, "Pr", "Praseodymium", 140.90765],  # 59
     [60, "Nd", "Neodymium", 144.242],  # 60
-    [61, "Pm", "Promethium", 145],  # 61 (mass is from wikipedia)
+    [61, "Pm", "Promethium", 144.91276],  # 61 (mass is from NIST)
     [62, "Sm", "Samarium", 150.36],  # 62
     [63, "Eu", "Europium", 151.964],  # 63
     [64, "Gd", "Gadolinium", 157.25],  # 64
@@ -639,12 +639,12 @@ atom_data = [
     [86, "Rn", "Radon", None],  # 86
     [87, "Fr", "Francium", None],  # 87
     [88, "Ra", "Radium", None],  # 88
-    [89, "Ac", "Actinium", 227],  # 89 (mass is from wikipedia)
+    [89, "Ac", "Actinium", 227.02775],  # 89 (mass is from NIST)
     [90, "Th", "Thorium", 232.03806],  # 90
     [91, "Pa", "Protactinium", 231.03588],  # 91
     [92, "U", "Uranium", 238.02891],  # 92
-    [93, "Np", "Neptunium", 237],  # 93 (mass is from wikipedia)
-    [94, "Pu", "Plutonium", None],  # 94
+    [93, "Np", "Neptunium", 237.04817],  # 93 (mass is from NIST)
+    [94, "Pu", "Plutonium", 244.06421],  # 94 (mass is from NIST)
     [95, "Am", "Americium", None],  # 95
     [96, "Cm", "Curium", None],  # 96
     [97, "Bk", "Berkelium", None],  # 97
@@ -1170,4 +1170,6 @@ isotope_data = {
         [235, 235.0439222, 0.007204],
         [238, 238.0507835, 0.992742],
     ],
+    "Np": None,
+    "Pu": None
 }
