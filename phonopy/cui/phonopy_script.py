@@ -1227,40 +1227,7 @@ def run(phonon: Phonopy, settings, plot_conf, log_level):
                         plot.show()
 
         #
-        # Total DOS
-        #
-        elif (
-            (plot_conf["plot_graph"] or settings.is_dos_mode)
-            and not is_pdos_auto(settings)
-            and run_mode in ("mesh", "band_mesh")
-        ):
-            phonon.run_total_dos(
-                sigma=settings.sigma,
-                freq_min=settings.min_frequency,
-                freq_max=settings.max_frequency,
-                freq_pitch=settings.frequency_pitch,
-                use_tetrahedron_method=settings.is_tetrahedron_method,
-            )
-
-            if log_level:
-                print("Calculating DOS...")
-
-            if settings.fits_Debye_model:
-                phonon.set_Debye_frequency()
-                if log_level:
-                    debye_freq = phonon.get_Debye_frequency()
-                    print("Debye frequency: %10.5f" % debye_freq)
-            phonon.write_total_dos()
-
-            if plot_conf["plot_graph"] and run_mode != "band_mesh":
-                plot = phonon.plot_total_dos()
-                if plot_conf["save_graph"]:
-                    plot.savefig("total_dos.pdf")
-                else:
-                    plot.show()
-
-        #
-        # Momemt
+        # Moment
         #
         elif settings.is_moment and run_mode in ("mesh", "band_mesh"):
             freq_min = settings.min_frequency
@@ -1318,6 +1285,39 @@ def run(phonon: Phonopy, settings, plot_conf, log_level):
                     for m in phonon.get_moment():
                         text += "%10.5f " % m
                     print(text)
+
+        #
+        # Total DOS
+        #
+        if (
+            (plot_conf["plot_graph"] or settings.is_dos_mode)
+            and run_mode in ("mesh", "band_mesh")
+        ):
+            phonon.run_total_dos(
+                sigma=settings.sigma,
+                freq_min=settings.min_frequency,
+                freq_max=settings.max_frequency,
+                freq_pitch=settings.frequency_pitch,
+                use_tetrahedron_method=settings.is_tetrahedron_method,
+            )
+
+            if log_level:
+                print("Calculating DOS...")
+
+            if settings.fits_Debye_model:
+                phonon.set_Debye_frequency()
+                if log_level:
+                    debye_freq = phonon.get_Debye_frequency()
+                    print("Debye frequency: %10.5f" % debye_freq)
+            phonon.write_total_dos()
+
+            if plot_conf["plot_graph"] and run_mode != "band_mesh":
+                plot = phonon.plot_total_dos()
+                if plot_conf["save_graph"]:
+                    plot.savefig("total_dos.pdf")
+                else:
+                    plot.show()
+
 
         #
         # Band structure and DOS are plotted simultaneously.
