@@ -67,7 +67,7 @@ class GroupVelocity:
         shape=(q-points, num_band, 3), dtype='double', order='C'
     q_length : float
         Distance in reciprocal space used to calculate finite difference of
-        dynamcial matrix.
+        dynamical matrix.
 
     """
 
@@ -293,14 +293,14 @@ class GroupVelocity:
         return gv_sym / len(rotations)
 
     def _get_dD(self, q):
-        """Compute derivative or finite difference of dynamcial matrices."""
+        """Compute derivative or finite difference of dynamical matrices."""
         if self._q_length is None:
             return self._get_dD_analytical(q)
         else:
             return self._get_dD_FD(q)
 
     def _get_dD_FD(self, q):
-        """Compute finite difference of dynamcial matrices."""
+        """Compute finite difference of dynamical matrices."""
         ddm = []
         for dqc in self._directions * self._q_length:
             dq = np.dot(self._reciprocal_lattice_inv, dqc)
@@ -310,7 +310,7 @@ class GroupVelocity:
         return np.array(ddm)
 
     def _get_dD_analytical(self, q):
-        """Compute derivative of dynamcial matrices."""
+        """Compute derivative of dynamical matrices."""
         self._ddm.run(q)
         ddm = self._ddm.d_dynamical_matrix
         dtype = "c%d" % (np.dtype("double").itemsize * 2)
