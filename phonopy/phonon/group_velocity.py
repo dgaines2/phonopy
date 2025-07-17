@@ -33,6 +33,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import copy
 import warnings
 from typing import Optional, Union
 
@@ -125,7 +126,7 @@ class GroupVelocity:
         self._group_velocities = None
         self._perturbation = None
 
-    def run(self, q_points, perturbation=None):
+    def run(self, q_points, perturbation=None, include_off_diagonal=False):
         """Group velocities are computed at q-points.
 
         Calculated group velocities are stored in self._group_velocities.
@@ -136,6 +137,9 @@ class GroupVelocity:
             List of q-points such as [[0, 0, 0], [0.1, 0.2, 0.3], ...].
         perturbation : array-like
             Direction in fractional coordinates of reciprocal space.
+        include_off_diagonal : bool
+            if True, calculate the full group velocity matrix (nbands, nbands, 3)
+            at each q-point.
 
         """
         self._q_points = q_points
@@ -147,8 +151,19 @@ class GroupVelocity:
             self._directions[0] = np.dot(self._reciprocal_lattice, perturbation)
         self._directions[0] /= np.linalg.norm(self._directions[0])
 
-        gv = [self._calculate_group_velocity_at_q(q) for q in self._q_points]
-        self._group_velocities = np.array(gv, dtype="double", order="C")
+        if not include_off_diagonal:
+            gv = [self._calculate_group_velocity_at_q(q) for q in self._q_points]
+            self._group_velocities = np.asarray(gv, dtype='double', order='C')
+            self._group_velocities_full = None
+        else:
+            gv = []
+            gv_full = []
+            for q_point in self._q_points:
+                gv_q, gvf_q = self._calculate_group_velocity_at_q_xy(q_point)
+                gv.append(gv_q)
+                gv_full.append(gvf_q)
+            self._group_velocities = np.asarray(gv, dtype='double', order='C')
+            self._group_velocities_full = np.asarray(gv_full, dtype=np.complex128, order='C')
 
     @property
     def q_length(self):
@@ -191,6 +206,10 @@ class GroupVelocity:
         )
         return self.group_velocities
 
+    @property
+    def group_velocities_full(self):
+        return self._group_velocities_full
+
     def _calculate_group_velocity_at_q(self, q):
         self._dynmat.run(q)
         dm = self._dynmat.dynamical_matrix
@@ -219,6 +238,43 @@ class GroupVelocity:
                 return self._symmetrize_group_velocity(gv, q)
         else:
             return gv
+
+    def _calculate_group_velocity_at_q_xy(self, q):
+        '''
+        @yixia
+        added and modified method to compute off-diagonal group velocities
+        '''
+        self._dynmat.run(q)
+        dm = self._dynmat.dynamical_matrix
+        eigvals, eigvecs = np.linalg.eigh(dm)
+        eigvals = eigvals.real
+        freqs = np.sqrt(abs(eigvals)) * np.sign(eigvals) * self._factor
+        gv = np.zeros((len(freqs),3), dtype='double', order='C')
+        gv_full = np.zeros((len(freqs),len(freqs),3), dtype=np.complex128, order='C')
+        deg_sets = degenerate_sets(freqs)
+
+        ddms = self._get_dD(np.array(q))
+        eigvecs_new = copy.deepcopy(eigvecs)
+        for deg in deg_sets:
+            eigsets = eigvecs[:, deg]
+            _, eigvecs_tmp = np.linalg.eigh(np.dot(eigsets.T.conj(), np.dot(ddms[0], eigsets)))
+            rot_eigsets = np.dot(eigsets, eigvecs_tmp)
+            eigvecs_new[:, deg] = rot_eigsets
+
+        fdim=len(freqs)
+        for i in range(fdim):
+            for j in range(fdim):
+                for k in range(3):
+                    gv_full[i,j,k] = np.dot(eigvecs_new[:,i].T.conj(), np.dot(ddms[k+1],eigvecs_new[:,j]))
+                if (freqs[i] > self._cutoff_frequency) and (freqs[j] > self._cutoff_frequency):
+                    gv_full[i,j,:] *= self._factor**2/(freqs[i]+freqs[j])
+                else:
+                    gv_full[i,j,:] = 0
+
+        for i in range(fdim):
+            gv[i,:] = gv_full[i,i,:].real
+
+        return gv, gv_full
 
     def _symmetrize_group_velocity(self, gv, q):
         """Symmetrize obtained group velocities using site symmetries."""
