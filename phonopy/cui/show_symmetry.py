@@ -58,7 +58,7 @@ def check_symmetry(phonon: Phonopy, optional_structure_info):
         base_fname = get_default_cell_filename(phonon.calculator)
         symprec = phonon.primitive_symmetry.get_symmetry_tolerance()
         (bravais_lattice, bravais_pos, bravais_numbers) = spglib.refine_cell(
-            phonon.primitive, symprec
+            phonon.primitive.totuple(), symprec
         )
         bravais = PhonopyAtoms(
             numbers=bravais_numbers, scaled_positions=bravais_pos, cell=bravais_lattice
