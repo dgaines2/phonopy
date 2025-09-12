@@ -261,18 +261,19 @@ class GroupVelocity:
             rot_eigsets = np.dot(eigsets, eigvecs_tmp)
             eigvecs_new[:, deg] = rot_eigsets
 
-        fdim=len(freqs)
-        for i in range(fdim):
-            for j in range(fdim):
-                for k in range(3):
-                    gv_full[i,j,k] = np.dot(eigvecs_new[:,i].T.conj(), np.dot(ddms[k+1],eigvecs_new[:,j]))
-                if (freqs[i] > self._cutoff_frequency) and (freqs[j] > self._cutoff_frequency):
-                    gv_full[i,j,:] *= self._factor**2/(freqs[i]+freqs[j])
-                else:
-                    gv_full[i,j,:] = 0
+        ddms3 = ddms[1:4]
+        for k in range(3):
+            gv_full[:,:,k] = eigvecs_new.conj().T @ ddms3[k] @ eigvecs_new
+        mask = (freqs > self._cutoff_frequency)[:, None] & (freqs > self._cutoff_frequency)[None, :]
+        factor_denom = freqs[:, None] + freqs[None, :]
+        factor = np.where(
+            mask,
+            self._factor ** 2 / factor_denom,
+            0.0,
+        )
+        gv_full *= factor[..., None]
 
-        for i in range(fdim):
-            gv[i,:] = gv_full[i,i,:].real
+        gv = np.real(np.diagonal(gv_full, axis1=0, axis2=1))
 
         return gv, gv_full
 
