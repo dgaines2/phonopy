@@ -1543,6 +1543,7 @@ class Phonopy:
         is_mesh_symmetry=True,
         with_eigenvectors=False,
         with_group_velocities=False,
+        with_full_group_velocities=False,
         is_gamma_center=False,
         use_iter_mesh=False,
     ):
@@ -1580,6 +1581,9 @@ class Phonopy:
         with_group_velocities : bool, optional
             Group velocities are calculated by setting True. Default is
             False.
+        with_full_group_velocities : bool, optional
+            Full group velocities are calculated by setting True. Default is
+            False.
         is_gamma_center: bool, default False
             Uniform mesh grids are generated centring at Gamma point but not
             the Monkhorst-Pack scheme. When type(mesh) is float, this parameter
@@ -1612,7 +1616,7 @@ class Phonopy:
             msg = "mesh has inappropriate type."
             raise TypeError(msg)
 
-        if with_group_velocities:
+        if with_group_velocities or with_full_group_velocities:
             if self._group_velocity is None:
                 self._set_group_velocity()
             group_velocity = self._group_velocity
@@ -1641,6 +1645,7 @@ class Phonopy:
                 with_eigenvectors=with_eigenvectors,
                 is_gamma_center=_is_gamma_center,
                 group_velocity=group_velocity,
+                with_full_group_velocities=with_full_group_velocities,
                 rotations=self._primitive_symmetry.pointgroup_operations,
                 factor=self._factor,
             )
@@ -1653,6 +1658,7 @@ class Phonopy:
         is_mesh_symmetry=True,
         with_eigenvectors=False,
         with_group_velocities=False,
+        with_full_group_velocities=False,
         is_gamma_center=False,
     ):
         """Run mesh sampling phonon calculation.
@@ -1667,6 +1673,7 @@ class Phonopy:
             is_mesh_symmetry=is_mesh_symmetry,
             with_eigenvectors=with_eigenvectors,
             with_group_velocities=with_group_velocities,
+            with_full_group_velocities=with_full_group_velocities,
             is_gamma_center=is_gamma_center,
         )
         self._mesh.run()
@@ -1776,6 +1783,10 @@ class Phonopy:
                 Phonon group velocities at ir-grid points.
                 dtype='double'
                 shape=(ir-grid points, bands, 3)
+            group_velocities_full: ndarray | None
+                Full phonon group velocities at ir-grid points.
+                dtype=np.complex128
+                shape=(ir-grid points, bands, bands, 3)
 
         """
         if self._mesh is None:
@@ -1788,6 +1799,7 @@ class Phonopy:
             "frequencies": self._mesh.frequencies,
             "eigenvectors": self._mesh.eigenvectors,
             "group_velocities": self._mesh.group_velocities,
+            "group_velocities_full": self._mesh.group_velocities_full,
         }
 
         return retdict

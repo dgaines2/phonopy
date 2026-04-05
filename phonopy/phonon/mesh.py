@@ -253,6 +253,7 @@ class Mesh(MeshBase):
         with_eigenvectors=False,
         is_gamma_center=False,
         group_velocity=None,
+        with_full_group_velocities=False,
         rotations=None,  # Point group operations in real space
         factor=VaspToTHz,
     ):
@@ -271,6 +272,8 @@ class Mesh(MeshBase):
 
         self._group_velocity = group_velocity
         self._group_velocities = None
+        self._group_velocities_full = None
+        self._with_full_group_velocities = with_full_group_velocities
 
     def __iter__(self):
         """Define iterator over q-points.
@@ -349,6 +352,13 @@ class Mesh(MeshBase):
         if self._frequencies is None:
             self.run()
         return self._group_velocities
+
+    @property
+    def group_velocities_full(self):
+        """Return full group velocities."""
+        if self._frequencies is None:
+            self.run()
+        return self._group_velocities_full
 
     def get_group_velocities(self):
         """Return group velocities."""
@@ -473,8 +483,12 @@ class Mesh(MeshBase):
             self._eigenvectors = eigenvectors
 
     def _set_group_velocities(self, group_velocity):
-        group_velocity.run(self._qpoints)
+        group_velocity.run(
+            self._qpoints,
+            include_off_diagonal=self._with_full_group_velocities
+        )
         self._group_velocities = group_velocity.group_velocities
+        self._group_velocities_full = group_velocity.group_velocities_full
 
 
 class IterMesh(MeshBase):
